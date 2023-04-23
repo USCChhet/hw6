@@ -91,9 +91,51 @@ std::set<std::string> boggle(const std::set<std::string>& dict, const std::set<s
 	return result;
 }
 
-bool boggleHelper(const std::set<std::string>& dict, const std::set<std::string>& prefix, const std::vector<std::vector<char> >& board, 
-								   std::string word, std::set<std::string>& result, unsigned int r, unsigned int c, int dr, int dc)
+bool boggleHelper(const std::set<std::string>& dict, 
+const std::set<std::string>& prefix, 
+const std::vector<std::vector<char> >& board, 
+std::string word, std::set<std::string>& result, 
+unsigned int r, unsigned int c, int dr, int dc)
 {
-//add your solution here!
+	// Check if current position is out of bounds or the word length exceeds board size
+  if (r == board.size() || c == board.size() || word.length() == board.size()) 
+  {
+    if(dict.find(word) != dict.end())
+    {
+      result.insert(word);
+    }
+  }
 
+  //original word has been determined to be both a prefix and english word
+  else if((dict.find(word) != dict.end()) && (prefix.find(word) != prefix.end()) )
+  {
+    word += board[r][c];
+
+    //updated word after adding new letter is no longer an english word
+    if(dict.find(word) == dict.end())
+    {
+      //remove add on, put into result, readd letter
+      word.pop_back();
+      result.insert(word);
+      word += board[r][c];
+    }
+
+    //continue recursion
+    boggleHelper(dict, prefix, board, word, result, r + dr, c + dc, dr, dc);
+  }
+
+	//word is no longer a prefix and has been determined to be a terminal node
+  else if((dict.find(word) != dict.end()) && (prefix.find(word) == prefix.end()) )
+  {
+    result.insert(word);
+  }
+
+  //build up word
+  else
+  {
+    word += board[r][c];
+    boggleHelper(dict, prefix, board, word, result, r + dr, c + dc, dr, dc);
+  }
+
+	return false;;
 }

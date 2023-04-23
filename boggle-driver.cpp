@@ -8,7 +8,7 @@
 #include "boggle.h"
 
 using namespace std;
-
+//3 999 dict.txt
 int main(int argc, char* argv[])
 {
 	if(argc < 4)
@@ -16,6 +16,7 @@ int main(int argc, char* argv[])
 		cout << "Usage: boggle-driver <size> <seed> <dictionary file>" << endl;
 		exit(1);
 	}
+	
 	int size = atoi(argv[1]);
 	int seed = atoi(argv[2]);
 	vector<vector<char> > board = genBoard(size, seed);

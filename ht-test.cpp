@@ -6,43 +6,105 @@
 #include <string>
 #include <sstream>
 #include <functional>
+#include <set>
 using namespace std;
+
+struct IntHash 
+{
+    size_t size;
+    IntHash(size_t s) {
+        size = s;
+    }
+    HASH_INDEX_T operator()(const int& k) const
+    {
+        return k % size;
+    }
+};
+
+struct IntHash2 
+{
+    // size_t size;
+    IntHash2() {}
+    HASH_INDEX_T operator()(const int& k) const
+    {
+        return k;
+    }
+};
+
 int main()
 {
-    DoubleHashProber<std::string, MyStringHash > dh;
-    HashTable<
-        std::string, 
-        int, 
-        DoubleHashProber<std::string, MyStringHash >, 
-        std::hash<std::string>, 
-        std::equal_to<std::string> > ht(0.7, dh);
+  double loadfactor = 0.6;
+  const vector<int> sizemap = 
+  {
+    11, 23, 47, 97, 197, 397, 797, 1597, 3203, 6421
+  };
+  HashTable<int, int, LinearProber<int>, IntHash2, equal_to<int>> ht(loadfactor, LinearProber<int>(), IntHash2());   
+  std::set<std::pair<int, int>> items;
 
-    // This is just arbitrary code. Change it to test whatever you like about your 
-    // hash table implementation.
-    for(size_t i = 0; i < 10; i++){
-        std::stringstream ss;
-        ss << "hi" << i;
-        ht.insert({ss.str(), i});
+  for(size_t i = 0;i< sizemap.size()-1;i++)
+  {
+    int min = (int)floor(sizemap[i]*loadfactor);
+
+    for(int j = 0; j<=min/2;j++)
+    {
+      std::pair<int,int> pair(j,j);
+      //insert then delete
+      ht.insert(pair);
+      ht.remove(j);
+      //true
+      std::cout << (ht.find(j) == nullptr) << std::endl;
     }
-    if( ht.find("hi1") != nullptr ){
-        cout << "Found hi1" << endl;
-        ht["hi1"] += 1;
-        cout << "Incremented hi1's value to: " << ht["hi1"] << endl;
+
+    //true
+    std::cout << (ht.size() == 0) << std::endl;
+
+    //reinsert the same pair, loc should change
+    for(int j = 0; j<(min-(min/2));j++)
+    {
+      std::pair<int,int> pair(j,j);
+      //insert again
+      ht.insert(pair);
+      items.insert(pair);
+
+      std::cout << "check0: " << std::endl;
+      std::cout << ht.probe(j) << std::endl;
+      std::cout << (min/2)+1+j << std::endl;
     }
-    if( ht.find("doesnotexist") == nullptr ){
-        cout << "Did not find: doesnotexist" << endl;
+    
+    //true
+    std::cout << "check1: " << std::endl;
+    std::cout << ht.table_.size() << std::endl;
+    std::cout << sizemap[i] << std::endl;
+    std::cout << (ht.table_.size() == sizemap[i]) << std::endl;
+
+    //true
+    std::cout << "check2: " << std::endl;
+    std::cout << ht.size() << std::endl;
+    std::cout <<  items.size() << std::endl;
+    std::cout << (ht.size() == items.size()) << std::endl;
+
+    //add another should resize/rehash
+    std::pair<int,int> pair((min/2)+1,(min/2)+1);
+    ht.insert(pair);
+    items.insert(pair);
+
+    //true
+    std::cout << (ht.table_.size() == sizemap[i+1]) << std::endl;
+    //true
+    std::cout << (ht.size() == items.size()) << std::endl;
+    
+    //should be put into the correct spot, now that
+    //the "deleted" items are actually "deleted" when resizing
+    std::cout << "testing: " << std::endl;
+    for(int j = 0; j<=(min/2+1);j++)
+    {
+      if(ht.probe(j) != j)
+      {
+        std::cout << "not same" << std::endl;
+      }
     }
-    cout << "HT size: " << ht.size() << endl;
-    ht.remove("hi7");
-    ht.remove("hi9");
-    cout << "HT size: " << ht.size() << endl;
-    if( ht.find("hi9") != nullptr ){
-        cout << "Found hi9" << endl;
-    }
-    else {
-        cout << "Did not find hi9" << endl;
-    }
-    ht.insert({"hi7",17});
-    cout << "size: " << ht.size() << endl;
-    return 0;
+  }
+
+    
+  return 0;
 }

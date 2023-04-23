@@ -18,6 +18,7 @@ int main(int argc, char* argv[])
     // key to hash
     string k(argv[1]);
     size_t hk = h1(k);
+    
     // Test the hash
     cout << "h(" << k << ")=" << hk << endl;
     return 0;
