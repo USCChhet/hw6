@@ -382,8 +382,13 @@ void HashTable<K,V,Prober,Hash,KEqual>::insert(const ItemType& p)
   bool inserted = false;
   size_t index = probe(p.first);
 
+  if(index == npos)
+  {
+    throw std::logic_error("Failed to insert key-value pair.");
+  }
+
   //check if the current spot is empty
-  if(table_[index] == nullptr) 
+  else if(table_[index] == nullptr) 
   {
     HashItem* temp = new HashItem(p);
     table_[index] = temp;
