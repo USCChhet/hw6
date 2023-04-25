@@ -372,7 +372,7 @@ template<typename K, typename V, typename Prober, typename Hash, typename KEqual
 void HashTable<K,V,Prober,Hash,KEqual>::insert(const ItemType& p)
 {
   //check if need to resize
-  double check = (static_cast<double>(count)/static_cast<double>(table_.size()));
+  double check = (static_cast<double>(allCount)/static_cast<double>(table_.size()));
   if(check >= this->maxThresh )
   {
     resize();
@@ -432,8 +432,9 @@ template<typename K, typename V, typename Prober, typename Hash, typename KEqual
 typename HashTable<K,V,Prober,Hash,KEqual>::ItemType const * HashTable<K,V,Prober,Hash,KEqual>::find(const KeyType& key) const
 {
     HASH_INDEX_T h = this->probe(key);
-    if((npos == h) || nullptr == table_[h] ){
-        return nullptr;
+    if((npos == h) || nullptr == table_[h] )
+    {
+      return nullptr;
     }
     return &table_[h]->item;
 }
@@ -511,6 +512,8 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
     //allocate a new vector with new size.. consider resizing more than 1 in findModulusToUseFromTableSize
     HASH_INDEX_T newCap = CAPACITIES[mIndex_];
     std::vector<HashItem*> newTable(newCap, nullptr);
+    allCount = 0;
+    count = 0;
 
     //ensure that original table is same size as new table
     table_.resize(newCap, nullptr);
@@ -524,6 +527,8 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
       {
         HASH_INDEX_T index = hash_((*it)->item.first) % CAPACITIES[mIndex_];
         newTable[index] = *it;
+        allCount++;
+        count++;
       }
       else if((*it != nullptr) && ((*it)->deleted == true))
       {
